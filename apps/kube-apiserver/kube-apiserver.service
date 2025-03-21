@@ -1,0 +1,13 @@
+[Unit]
+Description=Kube api service
+After=network.target
+Wants=network-online.target
+
+[Service]
+Restart=always
+Type=simple
+ExecStart=sudo kube-apiserver --etcd-servers http://kube3:2379 --service-account-key-file /etc/kubernetes/public.key --service-account-signing-key-file /etc/kubernetes/private.key --service-account-issuer lazykube --service-cluster-ip-range 10.0.0.0/24 --external-hostname kube1 --tls-cert-file /etc/kubernetes/kube.sayyidyofa.me.crt --tls-private-key-file /etc/kubernetes/kube.sayyidyofa.me.key --token-auth-file /etc/kubernetes/auth-tokens.csv
+Environment=
+
+[Install]
+WantedBy=multi-user.target
