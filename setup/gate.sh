@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -e
+set -eu
 
 HOSTNAME="$1"
 IP_ADDRESS="$2"
@@ -8,7 +8,7 @@ IP_ADDRESS="$2"
 ## Assuming the VM has an interface "ens18" that does not have dhcp, 
 ## with subnet 192.168.1.0/24
 ## and there is a dns server at 192.168.100.1 
-sudo echo > /etc/netplan/50-cloud-init.yaml << EOF
+sudo tee /etc/netplan/50-cloud-init.yaml > /dev/null <<EOF
 network:
   version: 2
   ethernets:
@@ -38,7 +38,7 @@ wget -O - https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/sh
 echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
 sudo apt update && sudo apt install consul
 sudo mkdir -p /var/lib/consul
-sudo echo > /etc/consul/config.json << EOF
+sudo tee /etc/consul/config.json > /dev/null <<EOF
 {
   "datacenter": "homelab",
   "node_name": "$HOSTNAME",
@@ -64,7 +64,7 @@ sudo echo > /etc/consul/config.json << EOF
   "enable_script_checks": true
 }
 EOF
-sudo echo > /etc/systemd/system/consul.service << EOF
+sudo tee /etc/systemd/system/consul.service > /dev/null <<EOF
 [Unit]
 Description=Consul Server + Client Agent
 After=network-online.target
@@ -73,7 +73,7 @@ Wants=network-online.target
 [Service]
 User=consul
 Group=consul
-ExecStart=/usr/local/bin/consul agent -config-dir=/etc/consul.d
+ExecStart=/usr/bin/consul agent -config-dir=/etc/consul
 ExecReload=/bin/kill -HUP $MAINPID
 Restart=on-failure
 LimitNOFILE=65536
@@ -90,7 +90,7 @@ tar -zxvf coredns_1.12.1_linux_amd64.tgz
 rm -rf coredns_1.12.1_linux_amd64.tgz
 chmod +x ./coredns
 sudo mv coredns /usr/bin/
-sudo echo > /etc/coredns/Corefile << EOF
+sudo tee /etc/coredns/Corefile > /dev/null <<EOF
 . {
     forward . 1.1.1.1
     log
@@ -110,14 +110,14 @@ consul. {
     errors
 }
 EOF
-sudo echo >/etc/systemd/system/coredns.service <<EOF
+sudo tee /etc/systemd/system/coredns.service > /dev/null <<EOF
 [Unit]
 Description=CoreDNS
 After=network-online.target consul.service
 Requires=consul.service
 
 [Service]
-ExecStart=/usr/local/bin/coredns -conf /etc/coredns/Corefile
+ExecStart=/usr/bin/coredns -conf /etc/coredns/Corefile
 Restart=always
 
 [Install]
@@ -130,7 +130,7 @@ sudo systemctl enable --now coredns
 sudo apt-get install -y --no-install-recommends software-properties-common
 sudo add-apt-repository -y ppa:vbernat/haproxy-3.0
 sudo apt install -y haproxy
-sudo echo > /etc/haproxy/haproxy.cfg << EOF
+sudo tee /etc/haproxy/haproxy.cfg > /dev/null <<EOF
 global
 	log /dev/log	local0
 	log /dev/log	local1 notice
@@ -181,11 +181,12 @@ backend dynamic_back
     server-template srv 10 _web._tcp.service.consul resolvers consul_dns check inter 2s
 EOF
 sudo systemctl reload haproxy
+sudo systemctl enable --now haproxy
 
 # Install Keepalived
 sudo apt install -y keepalived
-PRIORITY=$((($RANDOM % 100) + 1))
-sudo echo > /etc/keepalived/keepalived.conf << EOF
+PRIORITY=$(python3 -c "import sys; print(sys.argv[1].split('.')[-1])" $IP_ADDRESS)
+sudo tee /etc/keepalived/keepalived.conf > /dev/null <<EOF
 vrrp_instance VI_1 {
     state BACKUP
     interface ens18
@@ -212,7 +213,7 @@ vrrp_script check_services {
     rise 2
 }
 EOF
-sudo echo > /usr/local/bin/keepalived-health.sh << EOF
+sudo tee /usr/local/bin/keepalived-health.sh > /dev/null <<EOF
 #!/bin/bash
 
 # Check if Consul is healthy
@@ -227,6 +228,7 @@ ss -lntup | grep ":80" | grep -q "haproxy" || exit 1
 # All services healthy
 exit 0
 EOF
+sudo chmod +x /usr/local/bin/keepalived-health.sh
 sudo systemctl reload keepalived
 
 # Remove bloat and housekeep
