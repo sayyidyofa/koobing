@@ -34,10 +34,11 @@ sudo hostnamectl set-hostname $HOSTNAME
 sudo timedatectl set-timezone Asia/Jakarta
 
 # Install Consul
-wget -O - https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+wget -O - https://apt.releases.hashicorp.com/gpg | sudo gpg --yes --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
 echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
-sudo apt update && sudo apt install consul
+sudo apt update && sudo apt install consul -y
 sudo mkdir -p /var/lib/consul
+sudo mkdir -p /etc/consul
 sudo tee /etc/consul/config.json > /dev/null <<EOF
 {
   "datacenter": "homelab",
@@ -90,6 +91,7 @@ tar -zxvf coredns_1.12.1_linux_amd64.tgz
 rm -rf coredns_1.12.1_linux_amd64.tgz
 chmod +x ./coredns
 sudo mv coredns /usr/bin/
+sudo mkdir -p /etc/coredns
 sudo tee /etc/coredns/Corefile > /dev/null <<EOF
 . {
     forward . 1.1.1.1
@@ -186,6 +188,7 @@ sudo systemctl enable --now haproxy
 # Install Keepalived
 sudo apt install -y keepalived
 PRIORITY=$(python3 -c "import sys; print(sys.argv[1].split('.')[-1])" $IP_ADDRESS)
+sudo mkdir -p /etc/keepalived
 sudo tee /etc/keepalived/keepalived.conf > /dev/null <<EOF
 vrrp_instance VI_1 {
     state BACKUP
