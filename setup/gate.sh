@@ -75,7 +75,6 @@ Wants=network-online.target
 User=consul
 Group=consul
 ExecStart=/usr/bin/consul agent -config-dir=/etc/consul
-ExecReload=/bin/kill -HUP $MAINPID
 Restart=on-failure
 LimitNOFILE=65536
 
