@@ -231,7 +231,7 @@ ss -lntup | grep ":80" | grep -q "haproxy" || exit 1
 exit 0
 EOF
 sudo chmod +x /usr/local/bin/keepalived-health.sh
-sudo systemctl reload keepalived
+sudo systemctl enable --now keepalived
 
 # Remove bloat and housekeep
 sudo apt purge packagekit polkitd -y
