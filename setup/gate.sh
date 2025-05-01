@@ -34,11 +34,14 @@ sudo hostnamectl set-hostname $HOSTNAME
 sudo timedatectl set-timezone Asia/Jakarta
 
 # Install Consul
+## Consul will run as consul user
 wget -O - https://apt.releases.hashicorp.com/gpg | sudo gpg --yes --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
 echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
 sudo apt update && sudo apt install consul -y
 sudo mkdir -p /var/lib/consul
+sudo chown -R consul:consul /var/lib/consul
 sudo mkdir -p /etc/consul
+sudo chown -R consul:consul /etc/consul
 sudo tee /etc/consul/config.json > /dev/null <<EOF
 {
   "datacenter": "homelab",
