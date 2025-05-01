@@ -4,6 +4,8 @@ set -eu
 HOSTNAME="$1"
 IP_ADDRESS="$2"
 
+sudo systemd-machine-id-setup
+
 # Set ip address
 ## Assuming the VM has an interface "ens18" that does not have dhcp, 
 ## with subnet 192.168.1.0/24
