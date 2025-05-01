@@ -55,7 +55,7 @@ sudo tee /etc/consul/config.json > /dev/null <<EOF
     "enabled": true
   },
   "ports": {
-    "https": -1,
+    "https": -1
   },
   "dns_config": {
     "enable_truncate": true,
