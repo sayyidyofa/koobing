@@ -1,10 +1,10 @@
 #!/bin/bash
 
-set -e
+set -eu
 
 # --- Parameters ---
 HOSTNAME="$1"
-JOIN_IP="${2:-192.168.1.100}"
+IP_ADDRESS="$2"
 DATACENTER="homelab"
 
 if [[ -z "$HOSTNAME" ]]; then
@@ -12,34 +12,58 @@ if [[ -z "$HOSTNAME" ]]; then
   exit 1
 fi
 
+sudo systemd-machine-id-setup
+
+# Set ip address
+## Assuming the VM has an interface "ens18" that does not have dhcp, 
+## with subnet 192.168.1.0/24
+## and there is a dns server at 192.168.100.1 
+sudo tee /etc/netplan/50-cloud-init.yaml > /dev/null <<EOF
+network:
+  version: 2
+  ethernets:
+    ens18:
+      addresses:
+      - "$IP_ADDRESS/24"
+      nameservers:
+        addresses:
+        - 192.168.1.1
+        - 192.168.100.1
+        - 1.1.1.1
+        search: []
+      routes:
+      - to: "default"
+        via: "192.168.1.1"
+EOF
+sudo netplan apply
+
 echo "[*] Setting hostname to $HOSTNAME"
 hostnamectl set-hostname "$HOSTNAME"
+
+# Set Timezone
+sudo timedatectl set-timezone Asia/Jakarta
 
 echo "[*] Installing dependencies"
 apt-get update -y
 apt-get install -y unzip curl jq
 
-echo "[*] Installing Consul binary"
-CONSUL_VERSION="1.16.2"
-cd /tmp
-curl -sLO "https://releases.hashicorp.com/consul/${CONSUL_VERSION}/consul_${CONSUL_VERSION}_linux_amd64.zip"
-unzip "consul_${CONSUL_VERSION}_linux_amd64.zip"
-chmod +x consul
-mv consul /usr/local/bin/consul
-
-echo "[*] Creating consul user and directories"
-useradd --system --home /etc/consul.d --shell /bin/false consul || true
-mkdir -p /etc/consul.d /var/lib/consul
-chown -R consul:consul /etc/consul.d /var/lib/consul
-
+# Install Consul
+## Consul will run as consul user
+wget -O - https://apt.releases.hashicorp.com/gpg | sudo gpg --yes --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+sudo apt update && sudo apt install consul -y
+sudo mkdir -p /var/lib/consul
+sudo chown -R consul:consul /var/lib/consul
+sudo mkdir -p /etc/consul
+sudo chown -R consul:consul /etc/consul
 echo "[*] Creating Consul client config"
-cat >/etc/consul.d/client.json <<EOF
+sudo tee /etc/consul.d/client.json > /dev/null <<EOF
 {
   "datacenter": "${DATACENTER}",
   "node_name": "${HOSTNAME}",
   "data_dir": "/var/lib/consul",
   "client_addr": "0.0.0.0",
-  "retry_join": ["${JOIN_IP}"],
+  "retry_join": ["192.168.1.100"],
   "bind_addr": "$(hostname -I | awk '{print $1}')",
   "server": false,
   "enable_script_checks": true
@@ -48,20 +72,16 @@ EOF
 
 chown consul:consul /etc/consul.d/client.json
 chmod 640 /etc/consul.d/client.json
-
-echo "[*] Creating systemd service unit for Consul"
-cat >/etc/systemd/system/consul.service <<EOF
+sudo tee /etc/systemd/system/consul.service > /dev/null <<EOF
 [Unit]
 Description=Consul Agent
-Requires=network-online.target
 After=network-online.target
+Wants=network-online.target
 
 [Service]
 User=consul
 Group=consul
-ExecStart=/usr/local/bin/consul agent -config-dir=/etc/consul.d/
-ExecReload=/bin/kill -HUP \$MAINPID
-KillMode=process
+ExecStart=/usr/bin/consul agent -config-dir=/etc/consul
 Restart=on-failure
 LimitNOFILE=65536
 
