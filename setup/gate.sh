@@ -54,7 +54,11 @@ sudo tee /etc/consul/config.json > /dev/null <<EOF
   "bind_addr": "$IP_ADDRESS",
   "client_addr": "0.0.0.0",
   "retry_join": [
-    "provider=dnssrv name=_consul-server._tcp.service.consul"
+    "192.168.1.101",
+    "192.168.1.102",
+    "192.168.1.103",
+    "192.168.1.104",
+    "192.168.1.105"
   ],
   "ui_config": {
     "enabled": true
