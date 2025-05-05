@@ -51,7 +51,7 @@ sudo tee /etc/consul/config.json > /dev/null <<EOF
   "data_dir": "/var/lib/consul",
   "server": true,
   "bootstrap_expect": 5,
-  "bind_addr": "0.0.0.0",
+  "bind_addr": "$IP_ADDRESS",
   "client_addr": "0.0.0.0",
   "retry_join": [
     "provider=dnssrv name=_consul-server._tcp.service.consul"
