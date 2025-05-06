@@ -4,7 +4,23 @@ set -eu
 HOSTNAME="$1"
 IP_ADDRESS="$2"
 
+# machine id, hostname and local dns
+sudo rm -rf /etc/machine-id
 sudo systemd-machine-id-setup
+sudo tee /etc/hosts > /dev/null <<EOF
+127.0.0.1 localhost
+127.0.1.1 $HOSTNAME
+
+# The following lines are desirable for IPv6 capable hosts
+::1     ip6-localhost ip6-loopback
+fe00::0 ip6-localnet
+ff00::0 ip6-mcastprefix
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters
+EOF
+sudo systemctl disable --now systemd-resolved
+# Set hostname
+sudo hostnamectl set-hostname $HOSTNAME
 
 # Set ip address
 ## Assuming the VM has an interface "ens18" that does not have dhcp, 
@@ -19,6 +35,7 @@ network:
       - "$IP_ADDRESS/24"
       nameservers:
         addresses:
+        - 192.168.1.100
         - 192.168.1.1
         - 192.168.100.1
         - 1.1.1.1
@@ -28,9 +45,6 @@ network:
         via: "192.168.1.1"
 EOF
 sudo netplan apply
-
-# Set hostname
-sudo hostnamectl set-hostname $HOSTNAME
 
 # Set Timezone
 sudo timedatectl set-timezone Asia/Jakarta
@@ -76,7 +90,7 @@ sudo tee /etc/consul/config.json > /dev/null <<EOF
 EOF
 sudo tee /etc/systemd/system/consul.service > /dev/null <<EOF
 [Unit]
-Description=Consul Server + Client Agent
+Description=Consul Server Agent
 After=network-online.target
 Wants=network-online.target
 
@@ -108,7 +122,7 @@ sudo tee /etc/coredns/Corefile > /dev/null <<EOF
 }
 
 internal. {
-    rewrite name (.*)\.internal {1}.service.consul
+    rewrite name suffix .internal .service.consul
     forward . 127.0.0.1:8600
     log
     errors
@@ -183,12 +197,12 @@ resolvers consul_dns
     timeout resolve       1s
     hold valid            10s
 
-frontend http_front
-    bind *:80
-    default_backend dynamic_back
+#frontend http_front
+#    bind *:80
+#    default_backend dynamic_back
 
-backend dynamic_back
-    server-template srv 10 _web._tcp.service.consul resolvers consul_dns check inter 2s
+#backend dynamic_back
+#    server-template srv 10 _web._tcp.service.consul resolvers consul_dns check inter 2s
 EOF
 sudo systemctl reload haproxy
 sudo systemctl enable --now haproxy
