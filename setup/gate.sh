@@ -154,6 +154,16 @@ sudo systemctl enable --now coredns
 
 ## Store Corefile in Consul KV
 consul kv put coredns_corefile @/etc/coredns/Corefile
+## Restart service on KV change
+sudo tee /etc/coredns/watch.sh > /dev/null <<EOF
+#!/bin/bash
+set -e
+echo "replacing config file..."
+consul kv get coredns_corefile > /etc/coredns/Corefile
+echo "restarting coredns service..."
+systemctl restart coredns
+EOF
+sudo chmod +x /etc/coredns/watch.sh
 ## Watch Corefile in Consul KV
 sudo tee /etc/systemd/system/coredns-watch.service > /dev/null <<EOF
 [Unit]
@@ -170,16 +180,6 @@ WantedBy=multi-user.target
 EOF
 sudo systemctl daemon-reload
 sudo systemctl enable --now coredns-watch
-## Restart service on KV change
-sudo tee /etc/coredns/watch.sh > /dev/null <<EOF
-#!/bin/bash
-set -e
-echo "replacing config file..."
-consul kv get coredns_corefile > /etc/coredns/Corefile
-echo "restarting coredns service..."
-systemctl restart coredns
-EOF
-sudo chmod +x /etc/coredns/watch.sh
 
 # Install HAProxy
 sudo apt-get install -y --no-install-recommends software-properties-common
@@ -227,20 +227,38 @@ resolvers consul_dns
     resolve_retries       3
     timeout resolve       1s
     hold valid            10s
-
-#frontend http_front
-#    bind *:80
-#    default_backend dynamic_back
-
-#backend dynamic_back
-#    server-template srv 10 _web._tcp.service.consul resolvers consul_dns check inter 2s
 EOF
 sudo systemctl reload haproxy
 sudo systemctl enable --now haproxy
 
-## Store Corefile in Consul KV
-## Watch Corefile in Consul KV
+## Store haproxy cfg in Consul KV
+consul kv put haproxy_cfg @/etc/haproxy/haproxy.cfg
 ## Restart service on KV change
+sudo tee /etc/coredns/watch.sh > /dev/null <<EOF
+#!/bin/bash
+set -e
+echo "replacing config file..."
+consul kv get haproxy_cfg > /etc/haproxy/haproxy.cfg
+echo "restarting haproxy service..."
+systemctl restart haproxy
+EOF
+sudo chmod +x /etc/haproxy/watch.sh
+## Watch haproxy cfg in Consul KV
+sudo tee /etc/systemd/system/haproxy-watch.service > /dev/null <<EOF
+[Unit]
+Description=HAProxy Config Watcher
+After=network-online.target consul.service
+Requires=consul.service
+
+[Service]
+ExecStart=consul watch -type=key -key=haproxy_cfg /etc/haproxy/watch.sh
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+EOF
+sudo systemctl daemon-reload
+sudo systemctl enable --now haproxy-watch
 
 # Install Keepalived
 sudo apt install -y keepalived
@@ -264,9 +282,34 @@ vrrp_instance VI_1 {
 EOF
 sudo systemctl enable --now keepalived
 
-## Store Corefile in Consul KV
-## Watch Corefile in Consul KV
+## Store keepalived conf in Consul KV
+consul kv put keepalived_conf @/etc/keepalived/keepalived.conf
 ## Restart service on KV change
+sudo tee /etc/keepalived/watch.sh > /dev/null <<EOF
+#!/bin/bash
+set -e
+echo "replacing config file..."
+consul kv get keepalived_conf > /etc/keepalived/keepalived.conf
+echo "restarting keepalived service..."
+systemctl restart keepalived
+EOF
+sudo chmod +x /etc/keepalived/watch.sh
+## Watch keepalived conf in Consul KV
+sudo tee /etc/systemd/system/keepalived-watch.service > /dev/null <<EOF
+[Unit]
+Description=Keepalived Config Watcher
+After=network-online.target consul.service
+Requires=consul.service
+
+[Service]
+ExecStart=consul watch -type=key -key=keepalived_conf /etc/keepalived/watch.sh
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+EOF
+sudo systemctl daemon-reload
+sudo systemctl enable --now keepalived-watch
 
 # Remove bloat and housekeep
 sudo apt purge packagekit polkitd -y
