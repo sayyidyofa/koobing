@@ -234,7 +234,7 @@ sudo systemctl enable --now haproxy
 ## Store haproxy cfg in Consul KV
 consul kv put haproxy_cfg @/etc/haproxy/haproxy.cfg
 ## Restart service on KV change
-sudo tee /etc/coredns/watch.sh > /dev/null <<EOF
+sudo tee /etc/haproxy/watch.sh > /dev/null <<EOF
 #!/bin/bash
 set -e
 echo "replacing config file..."
