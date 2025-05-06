@@ -18,7 +18,9 @@ ff00::0 ip6-mcastprefix
 ff02::1 ip6-allnodes
 ff02::2 ip6-allrouters
 EOF
-sudo systemctl disable --now systemd-resolved
+sudo sed -i 's/#DNSStubListener=yes/DNSStubListener=no/g' /etc/systemd/resolved.conf
+sudo systemctl enable --now systemd-resolved
+sudo systemctl restart systemd-resolved
 # Set hostname
 sudo hostnamectl set-hostname $HOSTNAME
 
