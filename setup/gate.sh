@@ -152,6 +152,35 @@ EOF
 sudo systemctl daemon-reload
 sudo systemctl enable --now coredns
 
+## Store Corefile in Consul KV
+consul kv put coredns_corefile @/etc/coredns/Corefile
+## Watch Corefile in Consul KV
+sudo tee /etc/systemd/system/coredns-watch.service > /dev/null <<EOF
+[Unit]
+Description=CoreDNS Config Watcher
+After=network-online.target consul.service
+Requires=consul.service
+
+[Service]
+ExecStart=consul watch -type=key -key=coredns_corefile /etc/coredns/watch.sh
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+EOF
+sudo systemctl daemon-reload
+sudo systemctl enable --now coredns-watch
+## Restart service on KV change
+sudo tee /etc/coredns/watch.sh > /dev/null <<EOF
+#!/bin/bash
+set -e
+echo "replacing config file..."
+consul kv get coredns_corefile > /etc/coredns/Corefile
+echo "restarting coredns service..."
+systemctl restart coredns
+EOF
+sudo chmod +x /etc/coredns/watch.sh
+
 # Install HAProxy
 sudo apt-get install -y --no-install-recommends software-properties-common
 sudo add-apt-repository -y ppa:vbernat/haproxy-3.0
@@ -209,6 +238,10 @@ EOF
 sudo systemctl reload haproxy
 sudo systemctl enable --now haproxy
 
+## Store Corefile in Consul KV
+## Watch Corefile in Consul KV
+## Restart service on KV change
+
 # Install Keepalived
 sudo apt install -y keepalived
 PRIORITY=$(python3 -c "import sys; print(sys.argv[1].split('.')[-1])" $IP_ADDRESS)
@@ -230,6 +263,10 @@ vrrp_instance VI_1 {
 }
 EOF
 sudo systemctl enable --now keepalived
+
+## Store Corefile in Consul KV
+## Watch Corefile in Consul KV
+## Restart service on KV change
 
 # Remove bloat and housekeep
 sudo apt purge packagekit polkitd -y
