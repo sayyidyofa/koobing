@@ -225,35 +225,8 @@ vrrp_instance VI_1 {
     virtual_ipaddress {
         192.168.1.100
     }
-    track_script {
-        check_services
-    }
-}
-
-vrrp_script check_services {
-    script "/usr/local/bin/keepalived-health.sh"
-    interval 2
-    timeout 1
-    fall 2
-    rise 2
 }
 EOF
-sudo tee /usr/local/bin/keepalived-health.sh > /dev/null <<EOF
-#!/bin/bash
-
-# Check if Consul is healthy
-curl --silent --fail http://127.0.0.1:8500/v1/status/leader >/dev/null || exit 1
-
-# Check if CoreDNS is listening on port 53
-ss -lntup | grep ":53" | grep -q "coredns" || exit 1
-
-# Check if HAProxy is listening on port 80
-ss -lntup | grep ":80" | grep -q "haproxy" || exit 1
-
-# All services healthy
-exit 0
-EOF
-sudo chmod +x /usr/local/bin/keepalived-health.sh
 sudo systemctl enable --now keepalived
 
 # Remove bloat and housekeep
