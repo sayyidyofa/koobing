@@ -17,14 +17,18 @@ sudo rm -rf /etc/machine-id
 sudo systemd-machine-id-setup
 # Set hostname
 sudo hostnamectl set-hostname $HOSTNAME
+sudo sed -i "s/127.0.0.1 $HOSTNAME//g" /etc/hosts
+sudo tee -a /etc/hosts > /dev/null <<EOF
+127.0.0.1 $HOSTNAME
+EOF
 sudo sed -i 's/#DNSStubListener=yes/DNSStubListener=no/g' /etc/systemd/resolved.conf
 sudo systemctl enable --now systemd-resolved
 sudo systemctl restart systemd-resolved
 
 # Set ip address
-## Assuming the VM has an interface "ens18" that does not have dhcp, 
+## Assuming the VM has an interface "ens18" that does not have dhcp,
 ## with subnet 192.168.1.0/24
-## and there is a dns server at 192.168.100.1 
+## and there is a dns server at 192.168.100.1
 sudo tee /etc/netplan/50-cloud-init.yaml > /dev/null <<EOF
 network:
   version: 2
