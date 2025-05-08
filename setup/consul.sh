@@ -77,7 +77,7 @@ sudo tee /etc/consul/client.json > /dev/null <<EOF
   "datacenter": "${DATACENTER}",
   "node_name": "${HOSTNAME}",
   "data_dir": "/var/lib/consul",
-  "client_addr": "0.0.0.0",
+  "client_addr": "$IP_ADDRESS",
   "retry_join": [
     "192.168.1.101",
     "192.168.1.102",
