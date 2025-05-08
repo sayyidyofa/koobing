@@ -113,7 +113,7 @@ EOF
 echo "[*] Enabling and starting Consul service"
 sudo systemctl daemon-reexec
 sudo systemctl daemon-reload
-sudo systemctl enable consul
-sudo systemctl start consul
+sudo systemctl enable --now consul
+sudo systemctl restart consul
 
 echo "[✓] Consul client installed and running on $HOSTNAME (datacenter: ${DATACENTER})"
