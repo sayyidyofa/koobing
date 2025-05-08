@@ -12,7 +12,25 @@ if [[ -z "$HOSTNAME" ]]; then
   exit 1
 fi
 
+# machine id, hostname and local dns
+sudo rm -rf /etc/machine-id
 sudo systemd-machine-id-setup
+sudo tee /etc/hosts > /dev/null <<EOF
+127.0.0.1 localhost
+127.0.1.1 $HOSTNAME
+
+# The following lines are desirable for IPv6 capable hosts
+::1     ip6-localhost ip6-loopback
+fe00::0 ip6-localnet
+ff00::0 ip6-mcastprefix
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters
+EOF
+sudo sed -i 's/#DNSStubListener=yes/DNSStubListener=no/g' /etc/systemd/resolved.conf
+sudo systemctl enable --now systemd-resolved
+sudo systemctl restart systemd-resolved
+# Set hostname
+sudo hostnamectl set-hostname $HOSTNAME
 
 # Set ip address
 ## Assuming the VM has an interface "ens18" that does not have dhcp, 
@@ -37,15 +55,12 @@ network:
 EOF
 sudo netplan apply
 
-echo "[*] Setting hostname to $HOSTNAME"
-hostnamectl set-hostname "$HOSTNAME"
-
 # Set Timezone
 sudo timedatectl set-timezone Asia/Jakarta
 
 echo "[*] Installing dependencies"
-apt-get update -y
-apt-get install -y unzip curl jq
+sudo apt-get update -y
+sudo apt-get install -y unzip curl jq
 
 # Install Consul
 ## Consul will run as consul user
