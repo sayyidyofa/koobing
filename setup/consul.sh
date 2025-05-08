@@ -85,8 +85,8 @@ sudo tee /etc/consul.d/client.json > /dev/null <<EOF
 }
 EOF
 
-chown consul:consul /etc/consul.d/client.json
-chmod 640 /etc/consul.d/client.json
+sudo chown consul:consul /etc/consul.d/client.json
+sudo chmod 640 /etc/consul.d/client.json
 sudo tee /etc/systemd/system/consul.service > /dev/null <<EOF
 [Unit]
 Description=Consul Agent
@@ -105,9 +105,9 @@ WantedBy=multi-user.target
 EOF
 
 echo "[*] Enabling and starting Consul service"
-systemctl daemon-reexec
-systemctl daemon-reload
-systemctl enable consul
-systemctl start consul
+sudo systemctl daemon-reexec
+sudo systemctl daemon-reload
+sudo systemctl enable consul
+sudo systemctl start consul
 
 echo "[✓] Consul client installed and running on $HOSTNAME (datacenter: ${DATACENTER})"
