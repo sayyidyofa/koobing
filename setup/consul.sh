@@ -85,7 +85,7 @@ sudo tee /etc/consul/config.json > /dev/null <<EOF
     "192.168.1.104",
     "192.168.1.105"
   ],
-  "bind_addr": "$(hostname -I | awk '{print $1}')",
+  "bind_addr": "$IP_ADDRESS",
   "server": false,
   "enable_script_checks": true
 }
