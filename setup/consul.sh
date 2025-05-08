@@ -78,7 +78,13 @@ sudo tee /etc/consul/client.json > /dev/null <<EOF
   "node_name": "${HOSTNAME}",
   "data_dir": "/var/lib/consul",
   "client_addr": "0.0.0.0",
-  "retry_join": ["192.168.1.100"],
+  "retry_join": [
+    "192.168.1.101",
+    "192.168.1.102",
+    "192.168.1.103",
+    "192.168.1.104",
+    "192.168.1.105"
+  ],
   "bind_addr": "$(hostname -I | awk '{print $1}')",
   "server": false,
   "enable_script_checks": true
