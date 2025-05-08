@@ -72,7 +72,7 @@ sudo chown -R consul:consul /var/lib/consul
 sudo mkdir -p /etc/consul
 sudo chown -R consul:consul /etc/consul
 echo "[*] Creating Consul client config"
-sudo tee /etc/consul/client.json > /dev/null <<EOF
+sudo tee /etc/consul/config.json > /dev/null <<EOF
 {
   "datacenter": "${DATACENTER}",
   "node_name": "${HOSTNAME}",
@@ -91,8 +91,8 @@ sudo tee /etc/consul/client.json > /dev/null <<EOF
 }
 EOF
 
-sudo chown consul:consul /etc/consul/client.json
-sudo chmod 640 /etc/consul/client.json
+sudo chown consul:consul /etc/consul/config.json
+sudo chmod 640 /etc/consul/config.json
 sudo tee /etc/systemd/system/consul.service > /dev/null <<EOF
 [Unit]
 Description=Consul Agent
