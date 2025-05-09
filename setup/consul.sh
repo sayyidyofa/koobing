@@ -60,8 +60,10 @@ sudo apt-get install -y unzip curl jq
 wget -O - https://apt.releases.hashicorp.com/gpg | sudo gpg --yes --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
 echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
 sudo apt update && sudo apt install consul -y
+sudo rm -rf /var/lib/consul
 sudo mkdir -p /var/lib/consul
 sudo chown -R consul:consul /var/lib/consul
+sudo rm -rf /etc/consul
 sudo mkdir -p /etc/consul
 sudo chown -R consul:consul /etc/consul
 echo "[*] Creating Consul client config"
@@ -110,3 +112,5 @@ sudo systemctl enable --now consul
 sudo systemctl restart consul
 
 echo "[✓] Consul client installed and running on $HOSTNAME (datacenter: ${DATACENTER})"
+
+sudo reboot
