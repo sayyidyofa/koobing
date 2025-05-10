@@ -65,6 +65,7 @@ sudo tee /etc/consul/config.json > /dev/null <<EOF
 {
   "datacenter": "homelab",
   "node_name": "$HOSTNAME",
+  "domain": "$DOMAIN_NAME",
   "data_dir": "/var/lib/consul",
   "server": true,
   "bootstrap_expect": 5,
@@ -84,7 +85,6 @@ sudo tee /etc/consul/config.json > /dev/null <<EOF
     "https": -1
   },
   "dns_config": {
-    "domain": "$DOMAIN_NAME",
     "enable_truncate": true,
     "only_passing": true
   },
