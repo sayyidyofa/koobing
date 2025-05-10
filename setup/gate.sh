@@ -3,6 +3,7 @@ set -eu
 
 HOSTNAME="$1"
 IP_ADDRESS="$2"
+DOMAIN_NAME="$3"
 
 # machine id, hostname and local dns
 sudo rm -rf /etc/machine-id
@@ -83,6 +84,7 @@ sudo tee /etc/consul/config.json > /dev/null <<EOF
     "https": -1
   },
   "dns_config": {
+    "domain": "$DOMAIN_NAME",
     "enable_truncate": true,
     "only_passing": true
   },
@@ -124,13 +126,13 @@ sudo tee /etc/coredns/Corefile > /dev/null <<EOF
 }
 
 internal. {
-    rewrite name suffix .internal .service.consul
+    rewrite name suffix .internal .$DOMAIN_NAME
     forward . 127.0.0.1:8600
     log
     errors
 }
 
-consul. {
+$DOMAIN_NAME. {
     forward . 127.0.0.1:8600
     log
     errors
