@@ -24,7 +24,7 @@ After=network-online.target consul.service
 Requires=consul.service
 
 [Service]
-ExecStart=/usr/bin/etcd --name $HOSTNAME --discovery-srv $ROOT_DOMAIN --initial-advertise-peer-urls http://$HOSTNAME.node.homelab.$ROOT_DOMAIN:2380 --initial-cluster-token etcd-homelab --initial-cluster-state new --advertise-client-urls http://$HOSTNAME.node.homelab.$ROOT_DOMAIN:2379 --listen-client-urls http://0.0.0.0:2379 --listen-peer-urls http://0.0.0.0:2380 --data-dir /var/lib/etcd
+ExecStart=/usr/bin/etcd --name $HOSTNAME --discovery-srv service.$ROOT_DOMAIN --initial-advertise-peer-urls http://$HOSTNAME.node.homelab.$ROOT_DOMAIN:2380 --initial-cluster-token etcd-homelab --initial-cluster-state new --advertise-client-urls http://$HOSTNAME.node.homelab.$ROOT_DOMAIN:2379 --listen-client-urls http://0.0.0.0:2379 --listen-peer-urls http://0.0.0.0:2380 --data-dir /var/lib/etcd
 Restart=always
 
 [Install]
@@ -32,6 +32,7 @@ WantedBy=multi-user.target
 EOF
 sudo systemctl daemon-reload
 sudo systemctl enable --now etcd
+sudo systemctl restart etcd
 
 # Setup consul service for etcd
 sudo tee /etc/consul/etcd.hcl > /dev/null <<EOF
