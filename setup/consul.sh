@@ -38,6 +38,7 @@ network:
       - "$IP_ADDRESS/24"
       nameservers:
         addresses:
+        - 192.168.1.100
         - 192.168.1.1
         - 192.168.100.1
         - 1.1.1.1
