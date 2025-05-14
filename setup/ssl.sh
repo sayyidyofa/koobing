@@ -84,13 +84,10 @@ generate_kubeconfig developers "$DEV_CN"
 generate_kubeconfig administrators "$ADMIN_CN"
 generate_kubeconfig system "$SYSTEM_CN"
 
-# === etcd certs ===
-for i in 1 2 3; do
-  HOSTNAME=etcd$i
-  FQDN="$HOSTNAME.node.homelab.$ROOT_DOMAIN"
-  generate_cert "$HOSTNAME" etcd etcd-ca "etcd-server-$HOSTNAME" "DNS:$FQDN,IP:127.0.0.1"
-  generate_cert "$HOSTNAME-peer" etcd etcd-ca "etcd-peer-$HOSTNAME" "DNS:$FQDN,IP:127.0.0.1"
-done
+HOSTNAME=etcd
+FQDN="$HOSTNAME.node.homelab.$ROOT_DOMAIN"
+generate_cert "$HOSTNAME" etcd etcd-ca "etcd-server-$HOSTNAME" "DNS:$FQDN,IP:127.0.0.1"
+generate_cert "$HOSTNAME-peer" etcd etcd-ca "etcd-peer-$HOSTNAME" "DNS:$FQDN,IP:127.0.0.1"
 
 generate_cert "etcd-client" kube-apiserver etcd-ca etcd-client "DNS:localhost,IP:127.0.0.1"
 
