@@ -86,12 +86,12 @@ sudo systemctl restart etcd
 # Setup consul service for etcd
 sudo tee /etc/consul/etcd.hcl > /dev/null <<EOF
 services {
-  name = "etcd-client-tls"
-  id = "etcd-client-tls-$HOSTNAME"
+  name = "etcd-client-ssl"
+  id = "etcd-client-ssl-$HOSTNAME"
   port = 2379
   check = {
-    id = "check-etcd-client-tls-$HOSTNAME"
-    name = "Check etcd TLS client connection"
+    id = "check-etcd-client-ssl-$HOSTNAME"
+    name = "Check etcd SSL client connection"
     http = "https://$HOSTNAME.node.homelab.$ROOT_DOMAIN:2379/readyz"
     interval = "10s"
     timeout = "2s"
@@ -99,8 +99,8 @@ services {
   }
 }
 services {
-  name = "etcd-server-tls"
-  id = "etcd-server-tls-$HOSTNAME"
+  name = "etcd-server-ssl"
+  id = "etcd-server-ssl-$HOSTNAME"
   port = 2380
 }
 EOF
