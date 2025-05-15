@@ -20,7 +20,7 @@ rm -rf etcd-$VERSION-linux-amd64
 sudo rm -rf /var/lib/etcd
 sudo mkdir -p /var/lib/etcd
 
-sudo rm -rf /etc/etcd
+#sudo rm -rf /etc/etcd
 sudo mkdir -p /etc/etcd
 sudo tee /etc/etcd/conf.yml > /dev/null <<EOF
 name: $HOSTNAME 
