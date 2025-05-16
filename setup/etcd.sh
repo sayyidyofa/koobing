@@ -92,7 +92,7 @@ services {
   check = {
     id = "check-etcd-client-ssl-$HOSTNAME"
     name = "Check etcd SSL client connection"
-    http = "https://$HOSTNAME.node.homelab.$ROOT_DOMAIN:2379/readyz"
+    http = "https://127.0.0.1:2379/readyz"
     interval = "10s"
     timeout = "2s"
     tls_skip_verify = true
