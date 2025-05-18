@@ -9,6 +9,23 @@ CERT_PATH="/etc/etcd/$HOSTNAME.crt"
 CERT_PK_PATH="/etc/etcd/$HOSTNAME.key"
 CA_PATH="/etc/etcd/ca.crt"
 
+# Setup consul service for etcd
+sudo tee /etc/consul/etcd.hcl > /dev/null <<EOF
+services {
+  name = "etcd-client-ssl"
+  id = "etcd-client-ssl-$HOSTNAME"
+  port = 2379
+}
+services {
+  name = "etcd-server-ssl"
+  id = "etcd-server-ssl-$HOSTNAME"
+  port = 2380
+}
+EOF
+
+sudo systemctl restart consul
+sudo systemctl status consul
+
 wget "https://github.com/etcd-io/etcd/releases/download/$VERSION/etcd-$VERSION-linux-amd64.tar.gz"
 tar -zxvf etcd-$VERSION-linux-amd64.tar.gz
 sudo mv etcd-$VERSION-linux-amd64/etcd /usr/bin/
@@ -83,23 +100,6 @@ sudo systemctl daemon-reload
 sudo systemctl enable --now etcd
 sudo systemctl restart etcd
 sudo systemctl status etcd
-
-# Setup consul service for etcd
-sudo tee /etc/consul/etcd.hcl > /dev/null <<EOF
-services {
-  name = "etcd-client-ssl"
-  id = "etcd-client-ssl-$HOSTNAME"
-  port = 2379
-}
-services {
-  name = "etcd-server-ssl"
-  id = "etcd-server-ssl-$HOSTNAME"
-  port = 2380
-}
-EOF
-
-sudo systemctl restart consul
-sudo systemctl status consul
 
 # Add ca to trust store
 sudo apt install -y ca-certificates
