@@ -5,9 +5,9 @@ set -eu
 HOSTNAME=$1
 ROOT_DOMAIN=$2
 VERSION=$3
-CERT_PATH=$4
-CERT_PK_PATH=$5
-CA_PATH=$6
+CERT_PATH="/etc/etcd/$HOSTNAME.crt"
+CERT_PK_PATH="/etc/etcd/$HOSTNAME.key"
+CA_PATH="/etc/etcd/ca.crt"
 
 wget "https://github.com/etcd-io/etcd/releases/download/$VERSION/etcd-$VERSION-linux-amd64.tar.gz"
 tar -zxvf etcd-$VERSION-linux-amd64.tar.gz
@@ -25,12 +25,12 @@ sudo mkdir -p /etc/etcd
 sudo tee /etc/etcd/conf.yml > /dev/null <<EOF
 name: $HOSTNAME 
 discovery-srv: service.$ROOT_DOMAIN 
-initial-advertise-peer-urls: https://$HOSTNAME.node.homelab.$ROOT_DOMAIN:2380 
+advertise-client-urls: https://$HOSTNAME.node.$ROOT_DOMAIN:2379
+initial-advertise-peer-urls: https://$HOSTNAME.node.$ROOT_DOMAIN:2380 
 initial-cluster-token: etcd-homelab 
-initial-cluster-state: new 
-advertise-client-urls: https://$HOSTNAME.node.homelab.$ROOT_DOMAIN:2379 
-listen-client-urls: https://0.0.0.0:2379 
-listen-peer-urls: https://0.0.0.0:2380 
+initial-cluster-state: new  
+listen-client-urls: https://$HOSTNAME.node.$ROOT_DOMAIN:2379 
+listen-peer-urls: https://$HOSTNAME.node.$ROOT_DOMAIN:2380 
 data-dir: /var/lib/etcd
 client-transport-security:
   # Path to the client server TLS cert file.
@@ -40,7 +40,7 @@ client-transport-security:
   key-file: $CERT_PK_PATH
 
   # Enable client cert authentication.
-  client-cert-auth: false
+  client-cert-auth: true
 
   # Path to the client server TLS trusted CA cert file.
   trusted-ca-file: $CA_PATH
@@ -56,7 +56,7 @@ peer-transport-security:
   key-file: $CERT_PK_PATH
 
   # Enable peer client cert authentication.
-  client-cert-auth: false
+  client-cert-auth: true
 
   # Path to the peer server TLS trusted CA cert file.
   trusted-ca-file: $CA_PATH
@@ -82,6 +82,7 @@ EOF
 sudo systemctl daemon-reload
 sudo systemctl enable --now etcd
 sudo systemctl restart etcd
+sudo systemctl status etcd
 
 # Setup consul service for etcd
 sudo tee /etc/consul/etcd.hcl > /dev/null <<EOF
@@ -98,3 +99,9 @@ services {
 EOF
 
 sudo systemctl restart consul
+sudo systemctl status consul
+
+# Add ca to trust store
+sudo apt install -y ca-certificates
+sudo cp $CA_PATH /usr/local/share/ca-certificates/homelab.crt
+sudo update-ca-certificates
