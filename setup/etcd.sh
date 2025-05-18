@@ -9,16 +9,6 @@ CERT_PATH="/etc/etcd/$HOSTNAME.crt"
 CERT_PK_PATH="/etc/etcd/$HOSTNAME.key"
 CA_PATH="/etc/etcd/ca.crt"
 
-if [[ ! -f CERT_PATH ]] ; then
-    echo "etcd ssl certificate $CERT_PATH is not there, aborting."
-    exit 1
-fi
-
-if [[ ! -f CERT_PK_PATH ]] ; then
-    echo "etcd ssl private key $CERT_PK_PATH is not there, aborting."
-    exit 1
-fi
-
 # Setup consul service for etcd
 sudo tee /etc/consul/etcd.hcl > /dev/null <<EOF
 services {
