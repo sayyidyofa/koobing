@@ -29,8 +29,8 @@ advertise-client-urls: https://$HOSTNAME.node.$ROOT_DOMAIN:2379
 initial-advertise-peer-urls: https://$HOSTNAME.node.$ROOT_DOMAIN:2380 
 initial-cluster-token: etcd-homelab 
 initial-cluster-state: new  
-listen-client-urls: https://$HOSTNAME.node.$ROOT_DOMAIN:2379 
-listen-peer-urls: https://$HOSTNAME.node.$ROOT_DOMAIN:2380 
+listen-client-urls: https://0.0.0.0:2379 
+listen-peer-urls: https://0.0.0.0:2380 
 data-dir: /var/lib/etcd
 client-transport-security:
   # Path to the client server TLS cert file.
