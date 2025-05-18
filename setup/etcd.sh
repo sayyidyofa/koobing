@@ -9,6 +9,13 @@ CERT_PATH="/etc/etcd/$HOSTNAME.crt"
 CERT_PK_PATH="/etc/etcd/$HOSTNAME.key"
 CA_PATH="/etc/etcd/ca.crt"
 
+if sudo test -f "$CERT_PATH" && sudo test -f "$CERT_PK_PATH"; then
+    echo "etcd ssl certificate and private key exists, continuing..."
+else
+    echo "etcd ssl certificate and private key DOESN'T EXIST! Exiting"
+    exit 1
+fi
+
 # Setup consul service for etcd
 sudo tee /etc/consul/etcd.hcl > /dev/null <<EOF
 services {
