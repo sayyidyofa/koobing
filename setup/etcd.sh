@@ -33,6 +33,7 @@ services {
 }
 EOF
 
+sudo systemctl enable --now consul
 sudo systemctl restart consul
 sudo systemctl status consul
 
