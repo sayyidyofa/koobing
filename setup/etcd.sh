@@ -7,7 +7,7 @@ ROOT_DOMAIN=$2
 VERSION=$3
 CERT_PATH="/etc/etcd/$HOSTNAME.crt"
 CERT_PK_PATH="/etc/etcd/$HOSTNAME.key"
-CA_PATH="/etc/etcd/ca.crt"
+CA_PATH="/etc/ssl/certs/homelab.pem"
 
 if sudo test -f "$CERT_PATH" && sudo test -f "$CERT_PK_PATH"; then
     echo "etcd ssl certificate and private key exists, continuing..."
