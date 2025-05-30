@@ -93,7 +93,7 @@ EOF
 
 sudo tee /etc/etcd/start.sh > /dev/null <<EOF
 #!/bin/bash
-if test -d "/var/lib/etcd"; then
+if test -d "/var/lib/etcd/member"; then
   echo "etcd storage path exist, treating as existing cluster"
   sed -i "s/initial-cluster-state: new/initial-cluster-state: existing/" /etc/etcd/conf.yml
 else
