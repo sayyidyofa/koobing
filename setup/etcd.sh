@@ -110,6 +110,6 @@ sudo systemctl restart etcd
 sudo systemctl status etcd
 
 # Add ca to trust store
-sudo apt install -y ca-certificates
-sudo cp $CA_PATH /usr/local/share/ca-certificates/homelab.crt
-sudo update-ca-certificates
+#sudo apt install -y ca-certificates
+#sudo cp $CA_PATH /usr/local/share/ca-certificates/homelab.crt
+#sudo update-ca-certificates
