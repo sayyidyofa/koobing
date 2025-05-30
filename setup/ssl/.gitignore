@@ -1,3 +1,5 @@
-!./generate_certs.sh
-!./test_etcd_tls.sh
-./*
+*
+!.gitignore
+!.generate_certs.sh
+!.test_etcd_tls.sh
+*/
