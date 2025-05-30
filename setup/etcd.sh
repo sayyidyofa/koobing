@@ -91,6 +91,19 @@ peer-transport-security:
 
 EOF
 
+sudo tee /etc/etcd/start.sh > /dev/null <<EOF
+#!/bin/bash
+if test -d "/var/lib/etcd"; then
+  echo "etcd storage path exist, treating as existing cluster"
+  sed -i "s/initial-cluster-state: new/initial-cluster-state: existing/" /etc/etcd/conf.yml
+else
+  echo "etcd storage path does not exist, treating as new cluster"
+  sed -i "s/initial-cluster-state: new/initial-cluster-state: new/" /etc/etcd/conf.yml
+fi
+/usr/bin/etcd --config-file /etc/etcd/conf.yml
+EOF
+sudo chmod +x /etc/etcd/start.sh
+
 sudo tee /etc/systemd/system/etcd.service > /dev/null <<EOF
 [Unit]
 Description=etcd Service
@@ -98,7 +111,7 @@ After=network-online.target consul.service
 Requires=consul.service
 
 [Service]
-ExecStart=/usr/bin/etcd --config-file /etc/etcd/conf.yml
+ExecStart=/etc/etcd/start.sh
 Restart=always
 
 [Install]
