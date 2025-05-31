@@ -2,4 +2,5 @@
 !.gitignore
 !.generate_certs.sh
 !.test_etcd_tls.sh
+!.generate_etcd_cluster_certs.sh
 */
