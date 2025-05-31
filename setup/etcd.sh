@@ -28,6 +28,11 @@ services {
   id = "etcd-server-ssl-$HOSTNAME"
   port = 2380
 }
+services {
+  name = "etcd"
+  id = "etcd-$HOSTNAME"
+  port = 2379
+}
 EOF
 
 sudo systemctl enable --now consul
